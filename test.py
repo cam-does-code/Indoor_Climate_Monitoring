@@ -1,22 +1,16 @@
-import time
-import struct
 import spidev
 
 class LoRa:
     def __init__(self, RST_Pin, CS_Pin, SPI_CH, SCK_Pin, MOSI_Pin, MISO_Pin, DIO0_Pin, plus20dBm=False):
-        # Initialize SPI
         self.spi = spidev.SpiDev()
         self.spi.open(SPI_CH, CS_Pin)
         self.spi.max_speed_hz = 10000000  # 10 MHz
         self.spi.mode = 0
 
-        # Reset LoRa Module
         self.reset_pin = RST_Pin
         self.setup_reset_pin()
 
-        # Define registers
         self.RegTable = {
-            # Register table
             'RegFifo': 0x00,
             'RegOpMode': 0x01,
             'RegFrfMsb': 0x06,
@@ -25,7 +19,6 @@ class LoRa:
             # Other registers...
         }
 
-        # Define LoRa modes
         self.Mode = {
             'SLEEP': 0b000,
             'STANDBY': 0b001,
@@ -35,11 +28,16 @@ class LoRa:
             'CAD': 0b111,
         }
 
-        # Initialize LoRa
+        self.DioMapping = {  # Define DioMapping
+            'Dio0': {
+                'RxDone': 0b00 << 6
+            }
+        }
+
         self.initialize_lora()
 
     def setup_reset_pin(self):
-        # You need to handle the setup of the reset pin for Raspberry Pi.
+        # Handle the setup of the reset pin for Raspberry Pi
         pass
 
     def initialize_lora(self):
@@ -59,16 +57,8 @@ class LoRa:
         pass
 
     def RxCont(self):
-        # Start continuous reception
-        pass
-
-    def Tx(self):
-        # Start transmission
-        pass
-
-    def send(self, data):
-        # Send data
-        pass
+        self.write('RegDioMapping1', self.DioMapping['Dio0']['RxDone'])
+        self.write('RegOpMode', self.Mode['RXCONTINUOUS'])
 
     def packet_handler(self, packet, SNR, RSSI):
         # Handle received packet
@@ -79,7 +69,6 @@ class LoRa:
         pass
 
 if __name__ == "__main__":
-    # Pin configurations for Raspberry Pi
     LoRa_RST_Pin = 17
     LoRa_CS_Pin = 0
     LoRa_SCK_Pin = 11
@@ -87,9 +76,17 @@ if __name__ == "__main__":
     LoRa_MISO_Pin = 9
     LoRa_G0_Pin = 22
 
-    # Initialize LoRa object
     lora = LoRa(LoRa_RST_Pin, LoRa_CS_Pin, 0, LoRa_SCK_Pin, LoRa_MOSI_Pin, LoRa_MISO_Pin, LoRa_G0_Pin)
 
-    # Example usage
     lora.packet_handler = lambda self, packet, SNR, RSSI: print(packet, SNR, RSSI)
     lora.RxCont()
+
+    # Indicate that the program is waiting for packets
+    print("Waiting for packets...")
+
+    # Continue receiving packets indefinitely
+    try:
+        while True:
+            pass
+    except KeyboardInterrupt:
+        print("Received KeyboardInterrupt. Stopping reception.")
