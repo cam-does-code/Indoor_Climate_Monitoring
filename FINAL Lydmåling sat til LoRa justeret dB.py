@@ -33,7 +33,7 @@ SoundSensorPin.width(ADC.WIDTH_10BIT) # Fra 0 - 4095 range til 0 - 1023 range
 
 def read_sound_level():
     voltage_value = SoundSensorPin.read_u16() / 1023.0 * VREF
-    db_value = voltage_value * 0.9  # Konverter spænding til decibelværdi
+    db_value = voltage_value * 1.1  # Konverter spænding til decibelværdi
     return "{:.1f} dBA".format(db_value)
 
 try:
