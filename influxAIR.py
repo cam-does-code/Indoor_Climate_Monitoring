@@ -1,6 +1,7 @@
 import socket
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
+from gpiozero import LED
 
 # InfluxDB configuration
 token = "FRaiM5my-51qNaEg9BqHzW7c6qiQ7R6uBkRgkGZ1eWygZp2Ya3r3lOIVK9xBaOwQasCoabZKt4RoMt6i9HHZ8A=="
@@ -15,6 +16,16 @@ write_api = client.write_api(write_options=SYNCHRONOUS)
 # Socket configuration
 HOST = '0.0.0.0'  # All available interfaces
 PORT = 8080
+
+# Create LED objects
+sound_led = LED(23)  # Assuming pin 23 is used for the LED
+
+# Function to control LED based on sound level
+def control_led(sound_level):
+    if sound_level > 30:
+        sound_led.on()
+    else:
+        sound_led.off()
 
 # Create a TCP/IP socket
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -44,10 +55,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 parts = received_data.split(" dBA")
                 if len(parts) == 2:
                     # Extract the sound measurement value
-                    sound_measurement = parts[0].split()[-1]
+                    sound_measurement = float(parts[0].split()[-1])
                     print("Sound Measurement:", sound_measurement)
+                    # Control LED based on sound level
+                    control_led(sound_measurement)
                     # Store data in InfluxDB
-                    data_point = Point("sound_measurement").tag("device", "lora").field("measurement", float(sound_measurement))
+                    data_point = Point("sound_measurement").tag("device", "lora").field("measurement", sound_measurement)
                     write_api.write(bucket=bucket, org=org, record=data_point)
 
 print("Server stopped.")
