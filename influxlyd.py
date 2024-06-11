@@ -18,11 +18,11 @@ HOST = '0.0.0.0'  # All available interfaces
 PORT = 8080
 
 # Create LED objects
-sound_led = LED(23)  # Assuming pin 23 is used for the LED
+sound_led = LED(17)  # Assuming pin 23 is used for the LED
 
 # Function to control LED based on sound level
 def control_led(sound_level):
-    if sound_level > 30:
+    if sound_level > 60:
         sound_led.on()
     else:
         sound_led.off()

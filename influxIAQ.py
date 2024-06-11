@@ -12,11 +12,11 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 # Set up GPIO pins for LEDs
 CO2_LED_PIN = 24  # Change this to the GPIO pin connected to the CO2 LED
 TEMP_LED_PIN = 25  # Change this to the GPIO pin connected to the temperature LED
-TEMP_KOLD_PIN = 18
+TEMP_COLD_LED_PIN = 18
 
 co2_led = LED(CO2_LED_PIN)
 temp_led = LED(TEMP_LED_PIN)
-temp_cold_led = LED(TEMP_KOLD_PIN)
+kold_led = LED(TEMP_COLD_LED_PIN)
 
 client_id = "9874bb3c-c43c-4642-80ff-d607dbe9a562"
 device_id = "2960012551"
@@ -91,15 +91,15 @@ while True:
     else:
         co2_led.off()
 
+    if temperature < 19:
+        kold_led.on()
+    else:
+        kold_led.off()
+
     if temperature > 22:
         temp_led.on()
     else:
         temp_led.off()
 
-    if temperature < 19:
-        temp_cold_led.on()
-    else:
-        temp_cold_led.off()
-    
-    # Wait for 240 seconds before the next iteration
+    # Wait for 30 seconds before the next iteration
     time.sleep(240)
