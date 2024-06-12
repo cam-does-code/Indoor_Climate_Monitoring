@@ -9,9 +9,9 @@ from gpiozero import LED
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
 
-# Set up GPIO pins for LEDs
-CO2_LED_PIN = 24  # Change this to the GPIO pin connected to the CO2 LED
-TEMP_LED_PIN = 25  # Change this to the GPIO pin connected to the temperature LED
+# GPIO pins til LEDer
+CO2_LED_PIN = 24 
+TEMP_LED_PIN = 25 
 TEMP_COLD_LED_PIN = 18
 
 co2_led = LED(CO2_LED_PIN)
@@ -28,22 +28,22 @@ token_req_payload = {
     "scope": "read:device:current_values",
 }
 
-# Encode client_id and client_secret for the Authorization header
+# client_id og client_secret for Authorization header
 credentials = f"{client_id}:{client_secret}"
 credentials_encoded = base64.b64encode(credentials.encode()).decode()
 
-# InfluxDB configuration
-token = "FRaiM5my-51qNaEg9BqHzW7c6qiQ7R6uBkRgkGZ1eWygZp2Ya3r3lOIVK9xBaOwQasCoabZKt4RoMt6i9HHZ8A=="  # Replace with your admin token
+# InfluxDB konfiguration
+token = "FRaiM5my-51qNaEg9BqHzW7c6qiQ7R6uBkRgkGZ1eWygZp2Ya3r3lOIVK9xBaOwQasCoabZKt4RoMt6i9HHZ8A=="  
 org = "UCL"
 url = "http://localhost:8086"
-bucket = "afgangsprojekt"  # Replace with your bucket name
+bucket = "afgangsprojekt"  
 
-# Initialize the InfluxDB client
+# Initialiser InfluxDB client
 client = influxdb_client.InfluxDBClient(url=url, token=token, org=org)
 write_api = client.write_api(write_options=SYNCHRONOUS)
 
 while True:
-    # Request Access Token from auth server
+    # Request Access Token fra auth server
     try:
         token_data = parse.urlencode(token_req_payload).encode()
         token_request = request.Request(authorisation_url, data=token_data)
@@ -57,7 +57,7 @@ while True:
         print(f"Error retrieving access token: {e}")
         exit(1)
 
-    # Get the latest data for the device from the Airthings API.
+    # Få seneste data fra Airthings API.
     try:
         device_request = request.Request(device_url)
         device_request.add_header("Authorization", f"Bearer {token}")
@@ -69,14 +69,14 @@ while True:
         print(f"Error retrieving device data: {e}")
         exit(1)
 
-    # Extract CO2 and temperature data
+    # temp og co2 fra json
     co2 = int(device_data["data"]["co2"])
     temperature = int(device_data["data"]["temp"])
 
     print(f"CO2: {co2} ppm")
     print(f"Temperature: {temperature} °C")
 
-    # Write CO2 and temperature data to InfluxDB
+    # send data til InfluxDB
     point = (
         Point("air_quality")
         .tag("device_id", device_id)
@@ -85,7 +85,7 @@ while True:
     )
     write_api.write(bucket=bucket, record=point)
 
-    # Control LEDs based on CO2 and temperature readings
+    # LED styring
     if co2 > 1000:
         co2_led.on()
     else:
@@ -101,5 +101,4 @@ while True:
     else:
         temp_led.off()
 
-    # Wait for 30 seconds before the next iteration
-    time.sleep(240)
+    time.sleep(150)

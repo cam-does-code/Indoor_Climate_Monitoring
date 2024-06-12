@@ -280,7 +280,7 @@ if __name__ == "__main__":
     lora.packet_handler = lambda self, packet, SNR, RSSI: send_to_pi(packet + b"," + bytes(str(SNR), "utf-8") + b"," + bytes(str(RSSI), "utf-8"))
     lora.RxCont()
 
-    # Connect to Wi-Fiyy
+    # Connect til Wi-Fiyy
     wlan = network.WLAN(network.STA_IF)
     wlan.active(True)
     wlan.connect("Pixel 4", "password")

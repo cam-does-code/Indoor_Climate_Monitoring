@@ -3,63 +3,61 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 from gpiozero import LED
 
-# InfluxDB configuration
+# InfluxDB konfiguration
 token = "FRaiM5my-51qNaEg9BqHzW7c6qiQ7R6uBkRgkGZ1eWygZp2Ya3r3lOIVK9xBaOwQasCoabZKt4RoMt6i9HHZ8A=="
 org = "UCL"
 url = "http://localhost:8086"
 bucket = "afgangsprojekt"
 
-# Create InfluxDB client
+# InfluxDB client
 client = InfluxDBClient(url=url, token=token)
 write_api = client.write_api(write_options=SYNCHRONOUS)
 
-# Socket configuration
-HOST = '0.0.0.0'  # All available interfaces
+# Socket konfiguration
+HOST = '0.0.0.0'  # alle interfaces
 PORT = 8080
 
-# Create LED objects
-sound_led = LED(17)  # Assuming pin 23 is used for the LED
+sound_led = LED(17) 
 
-# Function to control LED based on sound level
+# LED
 def control_led(sound_level):
     if sound_level > 60:
         sound_led.on()
     else:
         sound_led.off()
 
-# Create a TCP/IP socket
+# lav TCP/IP socket
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    # Bind the socket to the address and port
+    # Bind socket til addresse og port
     s.bind((HOST, PORT))
-    # Listen for incoming connections
+    # Lyt efter forbindelser
     s.listen()
 
     print("Waiting for ESP32 connection...")
 
     while True:
-        # Accept a connection
+        # Accepter forbindelse
         conn, addr = s.accept()
         with conn:
             print("Connected to ESP32 at", addr)
             while True:
-                # Receive data from the ESP32
+                # modtag fra ESP32
                 data = conn.recv(1024)
                 if not data:
                     print("Connection closed by the ESP32.")
                     break
-                # Decode the received data
+                # Decode data
                 received_data = data.decode("utf-8")
                 print("Received data:", received_data)
                 
-                # Split the received data into parts
+                # split så vi kun får tal
                 parts = received_data.split(" dBA")
                 if len(parts) == 2:
-                    # Extract the sound measurement value
                     sound_measurement = float(parts[0].split()[-1])
                     print("Sound Measurement:", sound_measurement)
-                    # Control LED based on sound level
+                    # LED
                     control_led(sound_measurement)
-                    # Store data in InfluxDB
+                    # data til InfluxDB
                     data_point = Point("sound_measurement").tag("device", "lora").field("measurement", sound_measurement)
                     write_api.write(bucket=bucket, org=org, record=data_point)
 
